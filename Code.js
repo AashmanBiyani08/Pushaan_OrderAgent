@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════
 
 var CONFIG = {
-  SHEET_ID:        '1ii3L-HoC1zgCWJ37bpGQQ2vwhvCto-hqjU5iWQYKG1Y',
-  NGROK_URL:       'https://dealer-armadillo-bauble.ngrok-free.dev',
+  SHEET_ID:  'YOUR_SHEET_ID_HERE',
+NGROK_URL: 'YOUR_NGROK_URL_HERE',
   ORDER_LOG_TAB:   'Order Log',
   COUNTER_TAB:     'COUNTER',
   ORDER_SHEET_TAB: 'Order Sheet',
