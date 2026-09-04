@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pushaan Order Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0A0A0A; --s1:#111; --s2:#181818; --s3:#222; --s4:#2a2a2a;
+  --b1:rgba(255,255,255,0.06); --b2:rgba(255,255,255,0.10); --b3:rgba(255,255,255,0.18);
+  --text:#EBEBEB; --muted:#666; --faint:#333;
+  --gold:#D4A843; --gold-d:rgba(212,168,67,0.12); --gold-b:rgba(212,168,67,0.28); --gold-t:rgba(212,168,67,0.05);
+  --red:#E05555; --red-d:rgba(224,85,85,0.10); --red-b:rgba(224,85,85,0.25);
+  --green:#4CAF72; --green-d:rgba(76,175,114,0.10); --green-b:rgba(76,175,114,0.25);
+  --amber:#F59E0B; --amber-d:rgba(245,158,11,0.10); --amber-b:rgba(245,158,11,0.25);
+  --blue:#6B9FFF; --blue-d:rgba(107,159,255,0.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.2px}
+.logo span{color:var(--gold)}
+.header-btns{display:flex;gap:10px}
+.hdr-btn{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.hdr-btn:hover{border-color:var(--b3);color:var(--text)}
+.hdr-btn.rpo{border-color:var(--gold-b);background:var(--gold-t);color:var(--gold)}
+.hdr-btn.rpo:hover{background:var(--gold-d);border-color:var(--gold)}
+.hdr-btn.manual.active{border-color:var(--blue);background:var(--blue-d);color:var(--blue)}
+
+.main{max-width:880px;margin:0 auto;padding:32px 24px}
+
+.paste-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:24px;margin-bottom:24px}
+.paste-card h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+.paste-card .sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;line-height:1.7;resize:vertical;min-height:120px;outline:none;transition:border-color .15s}
+textarea:focus{border-color:var(--gold-b)}
+textarea::placeholder{color:var(--muted)}
+.parse-btn{margin-top:12px;width:100%;padding:11px;border-radius:8px;background:var(--gold);color:#080808;font-weight:700;font-size:14px;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.parse-btn:hover{background:#c49535}
+.parse-btn:disabled{background:var(--s4);color:var(--muted);cursor:not-allowed}
+
+.manual-banner{display:none;background:var(--blue-d);border:1px solid rgba(107,159,255,.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--blue)}
+
+.loading{display:none;text-align:center;padding:32px;color:var(--muted);font-size:13px}
+.spinner{width:28px;height:28px;border:2px solid var(--s4);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.review-section{display:none}
+.review-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.review-hdr h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff}
+.clear-btn{font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;padding:4px 8px;border-radius:6px;transition:all .15s}
+.clear-btn:hover{background:var(--s2);color:var(--text)}
+
+.party-card{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:20px;margin-bottom:16px}
+.party-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.party-row:last-child{margin-bottom:0}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;min-width:100px;margin-top:7px}
+.field-value{flex:1}
+.field-value input,.field-value select,.field-value textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.field-value textarea{min-height:60px;resize:vertical;line-height:1.5}
+.field-value input:focus,.field-value select:focus,.field-value textarea:focus{border-color:var(--gold-b)}
+.field-value select option{background:var(--s2)}
+.warn-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:5px;margin-top:5px;font-family:'DM Mono',monospace}
+.warn-red{background:var(--red-d);border:1px solid var(--red-b);color:var(--red)}
+.warn-green{background:var(--green-d);border:1px solid var(--green-b);color:var(--green)}
+.inferred-note{font-size:11px;color:var(--amber);margin-top:3px;font-family:'DM Mono',monospace}
+.lookup-fail{font-size:11px;color:var(--red);margin-top:3px}
+
+/* Special comment quick-fill chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--b2);background:var(--s3);color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.chip:hover{border-color:var(--gold-b);color:var(--gold);background:var(--gold-t)}
+.chip.add-chip{border-style:dashed;color:var(--gold)}
+.chip.add-chip:hover{background:var(--gold-t)}
+
+.items-section{margin-top:16px}
+.items-label{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.items-label::after{content:'';flex:1;height:1px;background:var(--gold-d)}
+.item-row{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative}
+.item-grid{display:grid;grid-template-columns:1fr 90px 1fr 70px 80px 90px;gap:9px;align-items:start}
+.item-field label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px}
+.item-field input,.item-field select{width:100%;background:var(--s3);border:1px solid var(--b2);border-radius:6px;padding:6px 9px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;transition:border-color .15s}
+.item-field input:focus,.item-field select:focus{border-color:var(--gold-b)}
+.item-field select option{background:var(--s3)}
+.loose-name-row{margin-top:10px;display:none}
+.loose-name-row label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px}
+.loose-name-row input{width:100%;background:var(--s3);border:1px solid var(--b2);border-radius:6px;padding:6px 9px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none}
+.del-item{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;border-radius:4px;transition:all .15s}
+.del-item:hover{background:var(--red-d);color:var(--red)}
+.raw-text{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:6px}
+.add-item-btn{width:100%;padding:9px;border-radius:8px;border:1px dashed var(--b2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-top:4px}
+.add-item-btn:hover{border-color:var(--gold-b);color:var(--gold);background:var(--gold-t)}
+
+.approve-row{margin-top:20px}
+.approve-btn{width:100%;padding:13px;border-radius:10px;background:var(--green);color:#080808;font-weight:700;font-size:15px;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.approve-btn:hover{background:#3d9960}
+.approve-btn:disabled{background:var(--s4);color:var(--muted);cursor:not-allowed}
+
+.success-card{display:none;background:var(--green-d);border:1px solid var(--green-b);border-radius:12px;padding:24px;text-align:center;margin-top:20px}
+.success-card h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--green);margin-bottom:8px}
+.success-card p{font-size:13px;color:var(--muted);margin-bottom:16px}
+.open-sheet-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:8px;background:var(--green);color:#080808;font-weight:700;font-size:14px;text-decoration:none;transition:background .15s}
+.open-sheet-btn:hover{background:#3d9960}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:28px;width:420px;max-width:90vw}
+.modal h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:16px}
+.modal select,.modal input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:16px}
+.modal select option{background:var(--s2)}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--b2)}
+.modal-cancel{background:transparent;color:var(--muted)}
+.modal-cancel:hover{background:var(--s2);color:var(--text)}
+.modal-confirm{background:var(--gold);color:#080808;border-color:transparent}
+.modal-confirm:hover{background:#c49535}
+
+.divider{height:1px;background:var(--b1);margin:14px 0}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+@media(max-width:680px){
+  .item-grid{grid-template-columns:1fr 1fr}
+  .header{padding:14px 16px}
+  .main{padding:20px 12px}
+  .field-label{min-width:80px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+ <div class="logo">Pushaan <span>Order Agent TEST123</span></div>
+  <div class="header-btns">
+    <button class="hdr-btn manual" id="manualBtn" onclick="toggleManual()">✎ &nbsp;Manual entry</button>
+    <button class="hdr-btn rpo" onclick="openRPO()">⟳ &nbsp;RPO</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- PASTE CARD -->
+  <div class="paste-card" id="pasteCard">
+    <h2>Paste order message</h2>
+    <div class="sub">Copy the WhatsApp message and paste it below. One party per paste.</div>
+    <textarea id="orderMsg" placeholder="e.g.&#10;Goyal Traders Hindaun&#10;NSK BP 250gm 2 bags&#10;NSK BP 500gm 1 bag"></textarea>
+    <button class="parse-btn" id="parseBtn" onclick="parseOrder()">Parse order →</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loadingDiv">
+    <div class="spinner"></div>
+    <span id="loadingText">Fetching from Tally and parsing…</span>
+  </div>
+
+  <!-- REVIEW SECTION -->
+  <div class="review-section" id="reviewSection">
+    <div class="manual-banner" id="manualBanner">✎ Manual entry mode — nothing is auto-filled. Build the order by hand.</div>
+    <div class="review-hdr">
+      <h2 id="reviewTitle">Review &amp; confirm</h2>
+      <button class="clear-btn" onclick="clearAll()">✕ Start over</button>
+    </div>
+
+    <!-- PARTY CARD -->
+    <div class="party-card">
+      <div class="party-row">
+        <span class="field-label">Party</span>
+        <div class="field-value">
+          <input type="text" id="fParty" placeholder="Party name">
+          <div id="partyWarn"></div>
+        </div>
+      </div>
+      <div class="party-row">
+        <span class="field-label">Tally name</span>
+        <div class="field-value">
+          <input type="text" id="fResolved" placeholder="Resolved Tally name" style="color:var(--muted)">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="party-row">
+        <span class="field-label">Due balance</span>
+        <div class="field-value">
+          <input type="text" id="fDue" placeholder="e.g. Rs 12000 due">
+          <div id="dueWarn"></div>
+        </div>
+      </div>
+      <div class="party-row">
+        <span class="field-label">Discount</span>
+        <div class="field-value">
+          <input type="text" id="fDiscount" placeholder="e.g. Rs 10/kg discount in previous order">
+          <div id="discountWarn"></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="party-row">
+        <span class="field-label">Special comment</span>
+        <div class="field-value">
+          <textarea id="fSpecialComment" placeholder="Type a note for this order, or tap a quick option below"></textarea>
+          <div class="chips" id="commentChips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINE ITEMS -->
+    <div class="items-section">
+      <div class="items-label">Order lines</div>
+      <div id="itemsList"></div>
+      <button class="add-item-btn" onclick="addBlankItem()">+ Add line item</button>
+    </div>
+
+    <!-- APPROVE -->
+    <div class="approve-row">
+      <button class="approve-btn" id="approveBtn" onclick="approveOrder()">✓ &nbsp;Approve &amp; create sheet</button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-card" id="successCard">
+      <h3>✓ Order sheet created</h3>
+      <p id="successMsg"></p>
+      <a href="#" id="openSheetBtn" class="open-sheet-btn" target="_blank">Open Google Sheet →</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- RPO MODAL -->
+<div class="modal-overlay" id="rpoModal">
+  <div class="modal">
+    <h3>Repeat previous order</h3>
+    <select id="rpoPartySelect"><option value="">— Select party —</option></select>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeRPO()">Cancel</button>
+      <button class="modal-confirm" onclick="loadRPO()">Load →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE COMMENT MODAL -->
+<div class="modal-overlay" id="saveCommentModal">
+  <div class="modal">
+    <h3>Save a new quick comment</h3>
+    <input type="text" id="newCommentInput" placeholder="Type the statement to save permanently">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeSaveComment()">Cancel</button>
+      <button class="modal-confirm" onclick="doSaveComment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var VARIANT_OPTIONS = ['DIVINE UP','ROYAL RAJASTHANI','AMCHI MUMBAI','SHRI KADAK','LOOSE'];
+var TYPE_OPTIONS    = ['BP','DUST'];
+var PACK_OPTIONS = {
+  'DIVINE UP':        ['1KG','500GR','250GR','5KG'],
+  'ROYAL RAJASTHANI': ['1KG','500GR','250GR','5KG'],
+  'AMCHI MUMBAI':     ['1KG','250GR','5KG'],
+  'SHRI KADAK':       ['1KG BAG','1KG POUCH','500GR','250GR','50GR','25GR','5KG'],
+  'LOOSE':            ['LOOSE'],
+};
+
+var itemCounter = 0;
+var manualMode  = false;
+var savedComments = [];
+
+// Load saved comments on startup
+window.addEventListener('load', function(){
+  google.script.run.withSuccessHandler(function(list){ savedComments = list || []; }).getSavedComments();
+});
+
+// ── MANUAL MODE TOGGLE ────────────────────────────────────────
+function toggleManual() {
+  manualMode = !manualMode;
+  document.getElementById('manualBtn').classList.toggle('active', manualMode);
+  if (manualMode) {
+    // Jump straight into a blank review form, no paste, no Tally
+    openBlankManualForm();
+  } else {
+    clearAll();
+  }
+}
+
+function openBlankManualForm() {
+  document.getElementById('fParty').value = '';
+  document.getElementById('fResolved').value = '';
+  document.getElementById('fDue').value = '';
+  document.getElementById('fDiscount').value = '';
+  document.getElementById('fSpecialComment').value = '';
+  document.getElementById('partyWarn').innerHTML = '';
+  document.getElementById('dueWarn').innerHTML = '';
+  document.getElementById('discountWarn').innerHTML = '';
+  renderCommentChips();
+
+  var list = document.getElementById('itemsList');
+  list.innerHTML = '';
+  list.appendChild(buildItemRow({}));
+
+  document.getElementById('pasteCard').style.display = 'none';
+  document.getElementById('loadingDiv').style.display = 'none';
+  document.getElementById('reviewSection').style.display = 'block';
+  document.getElementById('manualBanner').style.display = 'block';
+  document.getElementById('successCard').style.display = 'none';
+  document.getElementById('reviewTitle').textContent = 'Manual order entry';
+}
+
+// ── PARSE ─────────────────────────────────────────────────────
+function parseOrder() {
+  var msg = document.getElementById('orderMsg').value.trim();
+  if (!msg) { alert('Please paste an order message first.'); return; }
+
+  setLoading(true, 'Fetching from Tally and parsing…');
+  document.getElementById('parseBtn').disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(parsed) {
+      if (!parsed.success) { alert('Parse failed: ' + parsed.error); setLoading(false); document.getElementById('parseBtn').disabled=false; return; }
+      var party  = parsed.data.customer || '';
+      var orders = parsed.data.orders   || [];
+      google.script.run
+        .withSuccessHandler(function(enriched) { setLoading(false); renderReview(party, enriched); })
+        .withFailureHandler(function(e) { setLoading(false); document.getElementById('parseBtn').disabled=false; alert('Tally enrichment failed: ' + e.message); })
+        .enrichWithTally(party, orders);
+    })
+    .withFailureHandler(function(e) { setLoading(false); document.getElementById('parseBtn').disabled=false; alert('Error: ' + e.message); })
+    .parseOrderMessage(msg);
+}
+
+// ── RENDER REVIEW ─────────────────────────────────────────────
+function renderReview(party, enriched) {
+  document.getElementById('manualBanner').style.display = 'none';
+  document.getElementById('reviewTitle').textContent = 'Review & confirm';
+
+  document.getElementById('fParty').value    = party;
+  document.getElementById('fResolved').value = enriched.resolvedName || '';
+
+  var pw = document.getElementById('partyWarn');
+  var autoComment = '';
+  if (enriched.partyWarning) {
+    pw.innerHTML = '<div class="warn-tag warn-red">⚠ ' + enriched.partyWarning + '</div>';
+    autoComment = 'Party not found in Tally — GM to verify';
+  } else if (enriched.resolvedName) {
+    pw.innerHTML = '<div class="warn-tag warn-green">✓ Found in Tally</div>';
+  } else { pw.innerHTML = ''; }
+
+  document.getElementById('fDue').value = enriched.dueText === 'LOOKUP_FAILED' ? '' : (enriched.dueText || '');
+  document.getElementById('dueWarn').innerHTML = enriched.dueText === 'LOOKUP_FAILED'
+    ? '<div class="lookup-fail">⚠ Balance lookup failed — GM to check Tally</div>' : '';
+
+  document.getElementById('fDiscount').value = enriched.discountText === 'LOOKUP_FAILED' ? '' : (enriched.discountText || '');
+  var discWarnHtml = '';
+  if (enriched.discountText === 'LOOKUP_FAILED') {
+    discWarnHtml = '<div class="lookup-fail">⚠ Discount lookup failed — GM to check</div>';
+  } else if (enriched.discountDate) {
+    discWarnHtml = '<div class="inferred-note">⚡ from Tally order ' + escHtml(enriched.discountDate) + '</div>';
+  }
+  document.getElementById('discountWarn').innerHTML = discWarnHtml;
+
+  document.getElementById('fSpecialComment').value = autoComment;
+  renderCommentChips();
+
+  var list = document.getElementById('itemsList');
+  list.innerHTML = '';
+  (enriched.orders || []).forEach(function(o) { list.appendChild(buildItemRow(o)); });
+
+  document.getElementById('pasteCard').style.display     = 'none';
+  document.getElementById('reviewSection').style.display = 'block';
+  document.getElementById('successCard').style.display   = 'none';
+  document.getElementById('parseBtn').disabled = false;
+}
+
+// ── COMMENT CHIPS ─────────────────────────────────────────────
+function renderCommentChips() {
+  var box = document.getElementById('commentChips');
+  box.innerHTML = savedComments.map(function(c){
+    return '<span class="chip" onclick="addComment(this)">'+escHtml(c)+'</span>';
+  }).join('') + '<span class="chip add-chip" onclick="openSaveComment()">+ Save new</span>';
+}
+function addComment(el) {
+  var ta = document.getElementById('fSpecialComment');
+  var text = el.textContent;
+  var cur = ta.value.trim();
+  // stack: append if not already present
+  if (cur.indexOf(text) !== -1) return;
+  ta.value = cur ? (cur + ' | ' + text) : text;
+}
+function openSaveComment() {
+  document.getElementById('newCommentInput').value = '';
+  document.getElementById('saveCommentModal').classList.add('open');
+}
+function closeSaveComment() {
+  document.getElementById('saveCommentModal').classList.remove('open');
+}
+function doSaveComment() {
+  var text = document.getElementById('newCommentInput').value.trim();
+  if (!text) { alert('Type a statement first.'); return; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res.success) { savedComments = res.comments; renderCommentChips(); }
+      closeSaveComment();
+    })
+    .withFailureHandler(function(e){ alert(e.message); })
+    .saveNewComment(text);
+}
+
+// ── BUILD ITEM ROW ────────────────────────────────────────────
+function buildItemRow(o) {
+  o = o || {};
+  var id = 'item_' + (itemCounter++);
+  var div = document.createElement('div');
+  div.className = 'item-row';
+  div.id = id;
+
+  var variant = (o.variant || '').toUpperCase();
+  var packOpts = PACK_OPTIONS[variant] || PACK_OPTIONS['SHRI KADAK'];
+
+  var qtyCount = (o.qtyCount !== undefined && o.qtyCount !== '') ? o.qtyCount : '';
+  var unit     = o.unit || 'bags';
+  if (!qtyCount && o.quantity) {
+    var qm = String(o.quantity).match(/x\s*([\d.]+)\s*(bags?|kgs?)?/i) || String(o.quantity).match(/^([\d.]+)\s*(bags?|kgs?)?/i);
+    if (qm) { qtyCount = qm[1]; unit = qm[2] || 'bags'; }
+  }
+  if (/^kg/i.test(unit)) unit = 'kg'; else unit = 'bags';
+
+  var isLoose = (variant === 'LOOSE');
+
+  div.innerHTML =
+    '<button class="del-item" onclick="removeItem(\'' + id + '\')">✕</button>' +
+    '<div class="item-grid">' +
+      '<div class="item-field">' +
+        '<label>Variant</label>' +
+        '<select class="variant-select" onchange="onVariantChange(this)">' +
+          VARIANT_OPTIONS.map(function(v){ return '<option value="'+v+'"'+(v===variant?' selected':'')+'>'+v+'</option>'; }).join('') +
+          '<option value="UNKNOWN"'+((!o.variant||o.variant==='UNKNOWN')?' selected':'')+'>UNKNOWN</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="item-field">' +
+        '<label>Type</label>' +
+        '<select class="type-select">' +
+          TYPE_OPTIONS.map(function(t){ var tv=(o.type||'').toUpperCase(); return '<option value="'+t+'"'+(t===tv?' selected':'')+'>'+t+'</option>'; }).join('') +
+          '<option value="UNKNOWN"'+(!o.type||o.type==='UNKNOWN'?' selected':'')+'>UNKNOWN</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="item-field">' +
+        '<label>Pack size</label>' +
+        '<select class="pack-select">' +
+          packOpts.map(function(p){ return '<option value="'+p+'"'+(p===(o.pack||'')?' selected':'')+'>'+p+'</option>'; }).join('') +
+          '<option value="UNKNOWN"'+(!o.pack?' selected':'')+'>UNKNOWN</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="item-field">' +
+        '<label>Qty</label>' +
+        '<input type="number" min="0" step="any" class="qty-input" value="'+(qtyCount||'')+'" placeholder="#">' +
+      '</div>' +
+      '<div class="item-field">' +
+        '<label>Unit</label>' +
+        '<select class="unit-select">' +
+          '<option value="bags"'+(unit==='bags'?' selected':'')+'>bags</option>' +
+          '<option value="kg"'+(unit==='kg'?' selected':'')+'>kg</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="item-field">' +
+        '<label>Rate incl. tax</label>' +
+        '<input type="text" class="rate-input" value="'+(o.rate&&o.rate!=='UNKNOWN'?o.rate:'')+'" placeholder="283.5"'+(o.rateInferred?' style="border-color:var(--amber-b)"':'')+'>'+
+      '</div>' +
+    '</div>' +
+    '<div class="loose-name-row" style="'+(isLoose?'display:block':'')+'">' +
+      '<label>Loose tea name</label>' +
+      '<input type="text" class="loose-name-input" value="'+escAttr(o.looseName||'')+'" placeholder="e.g. Assam CTC">' +
+    '</div>' +
+    (o.variantInferred ? '<div class="inferred-note">⚡ Variant inferred from '+escHtml(o.variantSource||'')+'</div>' : '') +
+    (o.typeInferred    ? '<div class="inferred-note">⚡ Type inferred from '+escHtml(o.typeSource||'')+'</div>' : '') +
+    
+    (o.packInferred    ? '<div class="inferred-note">⚡ Pack inferred from '+escHtml(o.packSource||'')+'</div>' : '') +
+    (o.rateInferred    ? '<div class="inferred-note">⚡ Rate inferred from '+escHtml(o.rateSource||'')+'</div>' : '') +
+    (o.rawText         ? '<div class="raw-text">Customer wrote: '+escHtml(o.rawText)+'</div>' : '');
+
+  return div;
+}
+
+function onVariantChange(sel) {
+  var row  = sel.closest('.item-row');
+  var pSel = row.querySelector('.pack-select');
+  var variant = sel.value;
+  var opts = PACK_OPTIONS[variant] || [];
+  var cur  = pSel.value;
+  pSel.innerHTML = opts.map(function(p){ return '<option value="'+p+'"'+(p===cur?' selected':'')+'>'+p+'</option>'; }).join('') + '<option value="UNKNOWN">UNKNOWN</option>';
+  // Show/hide loose name field
+  row.querySelector('.loose-name-row').style.display = (variant === 'LOOSE') ? 'block' : 'none';
+}
+
+function removeItem(id) { var el=document.getElementById(id); if(el) el.remove(); }
+function addBlankItem() { document.getElementById('itemsList').appendChild(buildItemRow({})); }
+
+// ── APPROVE ───────────────────────────────────────────────────
+function approveOrder() {
+  var btn = document.getElementById('approveBtn');
+  btn.disabled = true; btn.textContent = 'Creating sheet…';
+
+  var party    = document.getElementById('fParty').value.trim();
+  var resolved = document.getElementById('fResolved').value.trim();
+  var dueText  = document.getElementById('fDue').value.trim();
+  var discText = document.getElementById('fDiscount').value.trim();
+  var special  = document.getElementById('fSpecialComment').value.trim();
+
+  if (!party) { alert('Party name is required.'); btn.disabled=false; btn.textContent='✓  Approve & create sheet'; return; }
+
+  var orders = [];
+  document.querySelectorAll('.item-row').forEach(function(row) {
+    var variantSel = row.querySelector('.item-grid select');           // first select = variant
+    var typeSel    = row.querySelectorAll('.item-grid select')[1];      // type
+    var packSel    = row.querySelector('.pack-select');
+    var unitSel    = row.querySelector('.unit-select');
+    var qty        = row.querySelector('.qty-input');
+    var rate       = row.querySelector('.rate-input');
+    var loose      = row.querySelector('.loose-name-input');
+    orders.push({
+      variant:   variantSel ? variantSel.value : '',
+      type:      typeSel ? typeSel.value : '',
+      pack:      packSel ? packSel.value : '',
+      qtyCount:  qty ? qty.value : '',
+      qty:       qty ? qty.value : '',
+      unit:      unitSel ? unitSel.value : 'bags',
+      rate:      rate ? rate.value : '',
+      looseName: loose ? loose.value : '',
+    });
+  });
+
+  var payload = {
+    party:          party,
+    resolvedName:   resolved || party,
+    dueText:        dueText,
+    discountText:   discText,
+    specialComment: special,
+    orders:         orders,
+  };
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false; btn.textContent = '✓  Approve & create sheet';
+      if (!res.success) { alert('Error: ' + res.error); return; }
+      document.getElementById('successCard').style.display = 'block';
+      document.getElementById('successMsg').textContent    = res.batchNo + ' created for ' + (resolved||party);
+      document.getElementById('openSheetBtn').href         = res.url;
+      btn.style.display = 'none';
+    })
+    .withFailureHandler(function(e) { btn.disabled=false; btn.textContent='✓  Approve & create sheet'; alert('Error: ' + e.message); })
+    .approveOrder(payload);
+}
+
+// ── RPO ───────────────────────────────────────────────────────
+function openRPO() {
+  var sel = document.getElementById('rpoPartySelect');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  document.getElementById('rpoModal').classList.add('open');
+  google.script.run.withSuccessHandler(function(parties) {
+    sel.innerHTML = '<option value="">— Select party —</option>' +
+      parties.map(function(p){ return '<option value="'+escAttr(p)+'">'+escHtml(p)+'</option>'; }).join('');
+  }).getAllParties();
+}
+function closeRPO() { document.getElementById('rpoModal').classList.remove('open'); }
+function loadRPO() {
+  var party = document.getElementById('rpoPartySelect').value;
+  if (!party) { alert('Please select a party.'); return; }
+  closeRPO();
+  setLoading(true, 'Loading previous order…');
+  google.script.run
+    .withSuccessHandler(function(last) {
+      if (!last) { setLoading(false); alert('No previous order found for this party. Place a new order first.'); return; }
+      google.script.run
+        .withSuccessHandler(function(enriched) {
+          setLoading(false);
+          enriched.orders = last.lineItems;
+          renderReview(last.party, enriched);
+          document.getElementById('reviewTitle').innerHTML = 'Review & confirm <span style="font-size:12px;color:var(--amber);margin-left:8px;font-family:\'DM Mono\',monospace">⟳ RPO of ' + escHtml(last.batchNo) + '</span>';
+        })
+        .withFailureHandler(function(e){ setLoading(false); alert(e.message); })
+        .enrichPartyOnly(last.party);
+    })
+    .withFailureHandler(function(e){ setLoading(false); alert(e.message); })
+    .getLastOrderForRPO(party);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function setLoading(on, text) {
+  document.getElementById('loadingDiv').style.display    = on ? 'block' : 'none';
+  document.getElementById('loadingText').textContent     = text || 'Loading…';
+  document.getElementById('pasteCard').style.display     = on ? 'none' : (manualMode ? 'none' : 'block');
+  document.getElementById('reviewSection').style.display = 'none';
+}
+function clearAll() {
+  manualMode = false;
+  document.getElementById('manualBtn').classList.remove('active');
+  document.getElementById('manualBanner').style.display = 'none';
+  document.getElementById('orderMsg').value = '';
+  document.getElementById('parseBtn').disabled = false;
+  document.getElementById('pasteCard').style.display     = 'block';
+  document.getElementById('reviewSection').style.display = 'none';
+  document.getElementById('successCard').style.display   = 'none';
+  document.getElementById('approveBtn').style.display    = '';
+  document.getElementById('approveBtn').disabled         = false;
+  document.getElementById('approveBtn').textContent      = '✓  Approve & create sheet';
+  document.getElementById('reviewTitle').textContent     = 'Review & confirm';
+}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
